@@ -1,19 +1,11 @@
+// Native Imports
 import React from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+
+// Navigation
+import FresnoFreshNavigator from './src/components/navigation/FresnoFreshNavigator'
 
 export default function App() {
   return (
-    <View style={styles.container}>
-      <Text>Open up App.js to start working on your app!</Text>
-    </View>
+    <FresnoFreshNavigator />
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-});
