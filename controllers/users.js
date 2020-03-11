@@ -1,7 +1,8 @@
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
-let { secretOrKey, refreshTokens } = require('../config/keys');
+const { secretOrKey } = require('../config/keys');
+let refreshTokens = [];
 
 // @desc Creates New Sser => Required: Email and Password
 // @route POST api/user/register
