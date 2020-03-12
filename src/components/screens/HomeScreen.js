@@ -1,9 +1,6 @@
 // Native Imports
 import React from 'react'
-import { Text, Image, StyleSheet, TouchableOpacity, ImageBackground } from 'react-native'
-
-// Logo
-import logoMin from '../../../assets/logo-min.png'
+import { Text, StyleSheet, TouchableOpacity, ImageBackground } from 'react-native'
 
 const HomeScreen = ({navigation}) => {
     return (
@@ -17,12 +14,6 @@ const HomeScreen = ({navigation}) => {
             </TouchableOpacity>
         </ImageBackground>
     );
-}
-
-HomeScreen.navigationOptions = () => {
-    return {
-        headerRight: () => <Image style={styles.logoImg} source={logoMin}/>,
-    }
 }
   
 const styles = StyleSheet.create({
@@ -66,13 +57,6 @@ const styles = StyleSheet.create({
         color: 'black',
         textAlign: 'center',
         fontSize: 17
-    },
-
-    logoImg: {
-        width: 75,
-        height: 50,
-        resizeMode: 'stretch',
-        marginRight: 15,
     },
 });
 
