@@ -2,6 +2,9 @@
 import React, { useState } from 'react'
 import { View, Text, StyleSheet, Switch, Button } from 'react-native'
 
+// Icons
+import { Ionicons } from '@expo/vector-icons'
+
 const FiltersScreen = () => {
     const [ isGlutenFree, setIsGlutenFree ] = useState(false)
     const [ isLactoseFree, setIsLactoseFree ] = useState(false)
@@ -42,6 +45,12 @@ const FiltersScreen = () => {
             <Button onPress={() => alert("Preferences Saved")} title="Save Filters"/>
         </View>
     )
+}
+
+FiltersScreen.navigationOptions = navData => {
+    return {
+        headerLeft: () => <Ionicons style={{marginLeft: 10}} size={34} color="black" name="ios-menu" onPress={()=>navData.navigation.openDrawer()}/>
+    }
 }
 
 const styles = StyleSheet.create({
