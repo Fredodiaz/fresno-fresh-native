@@ -1,8 +1,11 @@
+// Imports
 const express = require('express');
 const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
 
+// Routes
 const users = require('./routes/users');
+const messages = require('./routes/messages')
 
 const app = express();
 
@@ -19,7 +22,8 @@ mongoose
     .catch(err => console.log(err));
 
 // Use Routes
-app.use('/api/user', users);
+app.use('/api/users', users);
+app.use('/api/messages', messages);
 
 const port = process.env.PORT || 5000;
 
