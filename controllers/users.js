@@ -1,28 +1,31 @@
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+
 const User = require('../models/User');
+const MessageGroup = require('../models/MessageGroup');
+
 const { secretOrKey } = require('../config/keys');
 let refreshTokens = [];
+const tokenExp = '1h'
 
-// @desc Creates New Sser => Required: Email and Password
-// @route POST api/user/register
+// @desc Creates New User => Required: Email, Username, Password
+// @route POST api/users/register
 // @access PUBLIC
 createUser = (req, res) => {
     const { body } = req
-
+    
     // Validation
-    if (!body.email || !body.password) {
-      return res.status(400).json({ msg: 'Please enter all fields' });
+    if (!body.email || !body.password || !body.username) {
+      return res.status(400).json({ msg: 'Please enter all fields: Email, Username, Password' });
     }
 
-    // Returns Rrror if User Email Already Exists
-    User.findOne({ email: body.email }).then( user => {
+    // Returns Error if User Email or Username Already Exists
+    User.findOne({ email: body.email, username: body.username }).then( user => {
         if(user) {
-            return res.status(400).json({msg: 'email already exists'});
+            return res.status(400).json({msg: 'Email or Username already exists!'});
         }
 
         const newUser = new User(body)
-
         bcrypt.genSalt(10, (err, salt) => {
             bcrypt.hash( newUser.password, salt, (err, hash) => {
                 newUser.password = hash;
@@ -36,8 +39,8 @@ createUser = (req, res) => {
                 })
                 .catch( error => {
                     return res.status(400).json({
-                        error: error.message,
-                        msg: 'User not created!'
+                        msg: 'User not created!',
+                        error: error.message
                     })
                 })
             })
@@ -48,33 +51,34 @@ createUser = (req, res) => {
 // @desc Logs User => Returns: Refresh & Access Token
 //       * Access token is able to access endpoints
 //       * Refresh token generates new Acess token 
-// @route POST api/user/login
+// @route POST api/users/login
 // @access PUBLIC
 login = (req, res) => {
-    const { email, password } = req.body;
+    const { username, password } = req.body;
 
-    User.findOne({ email }).then(user => {
+    User.findOne({ username }).then(user => {
         if(!user) {
-            return res.status(404).json({ success: false, emailNotFound: "email not found"})
+            return res.status(404).json({ success: false, emailNotFound: "Username not found!"})
         }
 
         // Returns Tokens if Password is Valid
         bcrypt.compare(password, user.password).then(isMatch => {
             if(isMatch) {
                 const payload = {
-                    // id: user.id,
-                    name: user.name
+                    id: user._id,
+                    username
                 };
 
-                const accessToken = jwt.sign( payload, secretOrKey, { expiresIn: '1m' });
+                const accessToken = jwt.sign( payload, secretOrKey, { expiresIn: tokenExp });
                 const refreshToken = jwt.sign( payload, secretOrKey);
 
                 refreshTokens.push(refreshToken);
 
                 res.json({
-                    success: true,
+                    user: user.username,
                     accessToken,
                     refreshToken,
+                    success: true,
                 });
 
             } else {
@@ -87,18 +91,24 @@ login = (req, res) => {
 };
 
 // @desc Deletes Refresh Token to Prevent Further Access Token Generating
-// @route GET api/user/logout
+//      * Required: Refresh Token
+// @route GET api/users/logout
 // @access PRIVATE
 logout = (req, res) => {
     const { authorization } = req.headers;
     const refToken = authorization.split(' ')[1];
+
+    if (!refreshTokens.includes(refToken)) {
+        return res.sendStatus(403);
+    }
     refreshTokens = refreshTokens.filter(token => refToken !== token);
+    // refreshTokens = [],
 
     res.send(`Logout successful ${refreshTokens}`);
 }
 
 // @desc Generates New Access Token => Required: Refresh Token
-// @route GET api/user/token
+// @route GET api/users/token
 // @access PRIVATE
 token = (req, res) => {
     const { authorization } = req.headers;
@@ -113,11 +123,16 @@ token = (req, res) => {
     }
 
     jwt.verify(token, secretOrKey, (err, user) => {
+        const payload = {
+            id: user.id,
+            username: user.username
+        }
+
         if (err) {
             return res.sendStatus(403);
         }
 
-        const accessToken = jwt.sign({ name: user.name }, secretOrKey, { expiresIn: '1m' });
+        const accessToken = jwt.sign(payload, secretOrKey, { expiresIn: tokenExp });
 
         res.json({
             accessToken
@@ -125,17 +140,32 @@ token = (req, res) => {
     });
 };
 
-// @desc Sends back dummy data based of token
-// @route GET api/user/data
+// @desc Gets user
+// @route GET api/users/load
 // @access PRIVATE
-getData = (req, res) => {
-    res.json({data: '123'})
+loadUser = (req, res) => {
+    const { username } = req.user // Data from token
+
+    User.findOne({username})
+    .then(user => {
+        if(!user){
+            return res.status(404).json({msg: 'User not found!'})
+        }
+        const userData = {
+            username: user.username,
+            email: user.email,
+            conversations: user.conversations
+        }
+
+        return res.status(201).json(userData)
+    })
+
 }
 
 module.exports = {
     createUser,
     login,
-    getData,
     logout,
     token,
+    loadUser,
 }
