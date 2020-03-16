@@ -5,13 +5,13 @@ const router = express.Router()
 const authenticateJWT = require('../middleware/jwt');
 
 // Controllers
-const { createUser, login, getData, logout } = require('../controllers/users')
+const { createUser, login, logout, loadUser } = require('../controllers/users')
 
 // Endpoints
 router.post('/register', createUser)
 router.post('/login', login)
 router.post('/token', authenticateJWT, token),
-router.get('/data', authenticateJWT, getData)
 router.post('/logout', authenticateJWT, logout)
+router.get('/load', authenticateJWT, loadUser)
 
 module.exports = router
